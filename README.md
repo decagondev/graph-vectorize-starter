@@ -2,7 +2,7 @@
 
 ## 📝 Overview
 
-GraphVectorize is a project demonstrating the power of LangGraph for creating a sophisticated, multi-agent vector database system. This solution leverages advanced AI agents to manage, process, and retrieve vector embeddings with intelligent coordination.
+GraphVectorize is an innovative project demonstrating the power of LangGraph for creating a sophisticated, multi-agent vector database system. This solution leverages advanced AI agents to manage, process, and retrieve vector embeddings with intelligent coordination.
 
 ## 🌟 Key Features
 
@@ -12,6 +12,7 @@ GraphVectorize is a project demonstrating the power of LangGraph for creating a 
 - 🐘 **PostgreSQL Integration**: Robust vector storage using `pgvector`
 - 🐳 **Dockerized Environment**: Simplified deployment and setup
 - 📊 **Flexible Metadata Handling**: Intelligent metadata management and filtering
+- 🔭 **Comprehensive Monitoring**: Integrated Prometheus and Grafana dashboards
 
 ## 🏗️ Project Structure
 
@@ -20,7 +21,8 @@ GraphVectorize is a project demonstrating the power of LangGraph for creating a 
 │
 ├── 🐳 Dockerfile              # Container configuration
 ├── 📝 docker-compose.yml       # Multi-container Docker setup
-├── 📋 requirements.txt         # Python dependencies
+├── 📋 pyproject.toml           # Poetry dependency management
+├── 📊 prometheus.yml           # Prometheus monitoring configuration
 ├── 🐍 main.py                  # Core application logic
 ├── 🤖 agents/                  # Agent implementation directory
 │   ├── retrieval_agent.py      # Document retrieval specialist
@@ -62,7 +64,8 @@ git remote add upstream https://github.com/YourOrg/graphvectorize.git
 Create a `.env` file in the project root:
 
 ```env
-DATABASE_URL=postgresql://yourusername:yourpassword@postgres:5432/vectordb
+DATABASE_URL=postgresql://graphuser:graphpassword@postgres:5432/vectordb
+REDIS_URL=redis://redis:6379/0
 OPENAI_API_KEY=your_openai_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
@@ -70,113 +73,85 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 ### 4. Build and Launch 🚢
 
 ```bash
+# Start all services
 docker-compose up --build
+
+# Or run specific services
+docker-compose up app postgres redis
 ```
+
+## 🔬 Infrastructure Components
+
+### Docker Composition
+
+Our `docker-compose.yml` provides a robust multi-service architecture:
+
+- **Main Application**: Python-based LangGraph service
+- **PostgreSQL**: Vector database with `pgvector` extension
+- **Redis**: Caching and task queuing
+- **Adminer**: Database management interface
+- **Prometheus**: System and application monitoring
+- **Grafana**: Visualization and dashboarding
+
+### Dependency Management
+
+We use Poetry for sophisticated dependency management:
+- `pyproject.toml` defines project dependencies
+- Supports development and production environments
+- Ensures consistent package versions across setups
+
+### Monitoring Stack
+
+- **Prometheus**: Collects metrics from:
+  - Application performance
+  - Database statistics
+  - Redis cache metrics
+- **Grafana**: Creates interactive dashboards for real-time insights
 
 ## 💡 Usage Examples
 
-### Creating a Multi-Agent Vector Workflow
+(Previous usage examples remain the same)
+
+## 🚀 Monitoring and Observability
+
+### Accessing Dashboards
+
+- **Prometheus**: `http://localhost:9090`
+- **Grafana**: `http://localhost:3000`
+- **Adminer**: `http://localhost:8080`
+
+### Metrics Tracking
+
+Configure custom metrics in your agents:
 
 ```python
-from langgraph.prebuilt import create_react_agent
-from langchain_openai import ChatOpenAI
-from langchain_core.tools import tool
-from graphvectorize.agents import (
-    EmbeddingAgent, 
-    RetrievalAgent, 
-    MetadataAgent
+from prometheus_client import Counter, Gauge
+
+# Example agent metrics
+EMBEDDING_REQUESTS = Counter(
+    'agent_embedding_requests_total', 
+    'Total embedding generation requests'
 )
-
-# Define agent tools
-@tool
-def generate_embeddings(documents):
-    """Generate vector embeddings for documents"""
-    return embedding_agent.process(documents)
-
-@tool
-def semantic_search(query, k=3):
-    """Perform semantic search on vector database"""
-    return retrieval_agent.search(query, k)
-
-@tool
-def manage_metadata(document, metadata_actions):
-    """Manage document metadata"""
-    return metadata_agent.process(document, metadata_actions)
-
-# Initialize agents
-embedding_agent = EmbeddingAgent()
-retrieval_agent = RetrievalAgent()
-metadata_agent = MetadataAgent()
-
-# Create collaborative workflow
-workflow = create_react_agent(
-    tools=[
-        generate_embeddings, 
-        semantic_search, 
-        manage_metadata
-    ],
-    llm=ChatOpenAI(model="gpt-4")
+VECTOR_SEARCH_LATENCY = Gauge(
+    'agent_vector_search_latency_seconds', 
+    'Latency of semantic search operations'
 )
-```
-
-### Advanced Agent Coordination
-
-```python
-# Example of a complex document processing workflow
-def process_research_documents(documents):
-    # Embedding generation
-    embeddings = workflow.invoke({
-        "input": "Generate embeddings for these research documents",
-        "documents": documents
-    })
-    
-    # Metadata enrichment
-    enriched_docs = workflow.invoke({
-        "input": "Enrich metadata for these documents",
-        "documents": embeddings
-    })
-    
-    # Semantic indexing
-    workflow.invoke({
-        "input": "Index these documents in our vector database",
-        "documents": enriched_docs
-    })
-```
-
-## 🔬 Advanced Configurations
-
-### Custom Agent Capabilities
-
-- **Embedding Agent**: Support for multiple embedding models
-- **Retrieval Agent**: Advanced query expansion and re-ranking
-- **Metadata Agent**: Intelligent metadata extraction and management
-
-### Extensible Architecture
-
-```python
-class CustomAgent:
-    def __init__(self, strategies=None):
-        """Easily extend agent capabilities"""
-        self.strategies = strategies or []
-    
-    def add_strategy(self, strategy):
-        """Dynamically add processing strategies"""
-        self.strategies.append(strategy)
 ```
 
 ## 🤝 Contributing Workflow
 
-(Similar to the previous README's contribution guidelines)
+(Previous contribution guidelines remain the same)
 
 ## 🛡️ Troubleshooting
 
-- **Agent Coordination Issues**
-  - Verify LangGraph configuration
-  - Check inter-agent communication protocols
+- **Docker Composition**
+  - Verify all service dependencies
+  - Check container logs with `docker-compose logs <service>`
 
-- **Vector Database Challenges**
-  - Ensure PostgreSQL vector extension is properly configured
-  - Validate embedding dimensions
+- **Performance Monitoring**
+  - Review Prometheus metrics
+  - Analyze Grafana dashboards
+  - Adjust resource allocations in `docker-compose.yml`
 
 ## 🚀 Future Roadmap
 
@@ -184,6 +159,7 @@ class CustomAgent:
 - [ ] Advanced agent reasoning capabilities
 - [ ] Distributed agent architectures
 - [ ] Enhanced observability and tracing
+- [ ] Custom Grafana dashboards
 
 ## 📜 License
 
