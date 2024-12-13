@@ -1,0 +1,86 @@
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: graphvectorize-app
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://graphuser:graphpassword@postgres:5432/vectordb
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - .:/app
+    networks:
+      - graphvectorize_network
+
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: graphvectorize-postgres
+    environment:
+      - POSTGRES_DB=vectordb
+      - POSTGRES_USER=graphuser
+      - POSTGRES_PASSWORD=graphpassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - graphvectorize_network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: graphvectorize-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - graphvectorize_network
+
+  adminer:
+    image: adminer:latest
+    container_name: graphvectorize-adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - graphvectorize_network
+    depends_on:
+      - postgres
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: graphvectorize-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - graphvectorize_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: graphvectorize-grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - graphvectorize_network
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  graphvectorize_network:
+    driver: bridge
