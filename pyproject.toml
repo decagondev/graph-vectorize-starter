@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "graphvectorize"
+version = "0.1.0"
+description = "Multi-Agent Vector Database System"
+authors = ["Tom Tarpey <tom@decadev.co.uk>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langgraph = "^0.1.0"
+langchain = "^0.1.0"
+openai = "^1.0.0"
+pgvector = "^0.2.0"
+sqlalchemy = "^2.0.0"
+redis = "^5.0.0"
+prometheus-client = "^0.19.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+mypy = "^1.5.0"
+black = "^23.9.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
